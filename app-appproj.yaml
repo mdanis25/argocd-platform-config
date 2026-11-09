@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1  
+kind: AppProject
+metadata: 
+  name: app-project 
+  namespace: argocd 
+spec:
+  description: Project for App frontend and backend workloads 
+  sourceRepos: 
+    - https://github.com/mdanis25/app-frontend-config.git
+    - https://github.com/mdanis25/app-backend-config.git
+
+  destinations: 
+    - namespace: app-* 
+      server: https://kubernetes.default.svc 
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: apps
+      kind: Deployment 
+    - group: ""
+      kind: Service  
+    - group: ""
+      kind: configMap  
+    - group: ""
+      kind: Secret 
+  clusterResourceBlacklist: 
+    - group: rbac.authorization.k8s.io 
+      kind: ClusterRole 
+    - group: rbac.authorization.k8s.io 
+      kind: ClusterRoleBinding 
+  roles: 
+    - name: dev-only 
+      description: Read-only access for developers 
+      policies: 
+        - p, proj:app-project:dev-readonly, applications, get, app-project/*, allow 
+      groups:
+        - app-devs
+    
+    - name: platform-admin 
+      description: Full control for platform team 
+      policies:  
+        - p, proj:app-project:platform-admin, applications, *, app-project/*, allow 
+      groups: 
+        - ploatform-team
+
